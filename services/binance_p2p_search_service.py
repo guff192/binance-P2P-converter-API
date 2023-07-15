@@ -21,7 +21,7 @@ class P2PCryptoAssetType(str, Enum):
     ETH = 'ETH'
 
 
-class AdvRequestDataModel(BaseModel):
+class AdvSearchRequestModel(BaseModel):
     fiat: str
     page: int = 1
     rows: int = 20
@@ -55,7 +55,7 @@ class AdvData(BaseModel):
     advertiser: Advertiser
 
 
-class ApiAdvSearchResponse(BaseModel):
+class AdvSearchResponseModel(BaseModel):
     code: int
     message: str | None = None
     messageDetail: str | None = None
@@ -69,14 +69,14 @@ async def get_best_p2p_usdt_buy_course(
         pay_types: list[str] = [],
         amount: float = 0,
         ) -> AdvData: 
-    req_model = AdvRequestDataModel(
+    req_model = AdvSearchRequestModel(
         fiat=fiat,
         page=1,
         rows=1,
         trade_type=TradeType.BUY,
         asset=P2PCryptoAssetType.USDT,
         pay_types=pay_types,
-        trans_amount=amount
+        trans_amount=amount,
     )
 
     adv_list = await _get_p2p_adv_list(req_model)
@@ -88,7 +88,7 @@ async def get_best_p2p_usdt_sell_course(
         pay_types: list[str] = [],
         amount: float = 0,
         ) -> AdvData: 
-    req_model = AdvRequestDataModel(
+    req_model = AdvSearchRequestModel(
         fiat=fiat,
         page=1,
         rows=1,
@@ -102,7 +102,7 @@ async def get_best_p2p_usdt_sell_course(
     return adv_list[0]
 
 
-async def _get_p2p_adv_list(request_data: AdvRequestDataModel) -> list[AdvData]:
+async def _get_p2p_adv_list(request_data: AdvSearchRequestModel) -> list[AdvData]:
     # getting response
     response: httpx.Response = await _get_binance_adv_search_response(request_data)
 
@@ -116,7 +116,7 @@ async def _get_p2p_adv_list(request_data: AdvRequestDataModel) -> list[AdvData]:
         return adv_data_list
 
 
-async def _get_binance_adv_search_response(request_data: AdvRequestDataModel) -> httpx.Response:
+async def _get_binance_adv_search_response(request_data: AdvSearchRequestModel) -> httpx.Response:
     # TODO: catch possible errors
     async with httpx.AsyncClient(base_url=API_URL) as client:
         request_object = request_data.model_dump(by_alias=True)
@@ -133,7 +133,7 @@ class ApiEmptyResponseError(Exception):
 
 
 def _parse_adv_data(api_response: httpx.Response) -> list[AdvData]:
-    response_object = ApiAdvSearchResponse(**api_response.json())
+    response_object = AdvSearchResponseModel(**api_response.json())
     if response_object.code != 0:
         raise ApiResponseError
 
@@ -142,6 +142,4 @@ def _parse_adv_data(api_response: httpx.Response) -> list[AdvData]:
         raise ApiEmptyResponseError
 
     return useful_data
-
-
 
