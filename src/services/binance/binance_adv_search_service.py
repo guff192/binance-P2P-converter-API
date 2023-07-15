@@ -1,7 +1,8 @@
 from enum import Enum
 import httpx
-
 from pydantic import BaseModel, Field
+
+from models.binance import P2PExchangeOperation
 
 
 API_URL = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'
@@ -21,7 +22,7 @@ class P2PCryptoAssetType(str, Enum):
     ETH = 'ETH'
 
 
-class AdvSearchRequestModel(BaseModel):
+class AdvSearchRequestSchema(BaseModel):
     fiat: str
     page: int = 1
     rows: int = 20
@@ -55,7 +56,7 @@ class AdvData(BaseModel):
     advertiser: Advertiser
 
 
-class AdvSearchResponseModel(BaseModel):
+class AdvSearchResponseSchema(BaseModel):
     code: int
     message: str | None = None
     messageDetail: str | None = None
@@ -68,8 +69,8 @@ async def get_best_p2p_usdt_buy_course(
         fiat: str,
         pay_types: list[str] = [],
         amount: float = 0,
-        ) -> AdvData: 
-    req_model = AdvSearchRequestModel(
+        ) -> P2PExchangeOperation: 
+    req_model = AdvSearchRequestSchema(
         fiat=fiat,
         page=1,
         rows=1,
@@ -80,15 +81,25 @@ async def get_best_p2p_usdt_buy_course(
     )
 
     adv_list = await _get_p2p_adv_list(req_model)
-    return adv_list[0]
+    best_adv_data = adv_list[0]
+
+    operation = P2PExchangeOperation(
+            fiat=fiat,
+            crypto='USDT',
+            course=best_adv_data.adv.price,
+            operation_type='BUY',
+            fiat_amount=amount,
+            advertiser_url=_get_advertiser_url(best_adv_data)
+            )
+    return operation
 
 
 async def get_best_p2p_usdt_sell_course(
         fiat: str,
         pay_types: list[str] = [],
         amount: float = 0,
-        ) -> AdvData: 
-    req_model = AdvSearchRequestModel(
+        ) -> P2PExchangeOperation: 
+    req_model = AdvSearchRequestSchema(
         fiat=fiat,
         page=1,
         rows=1,
@@ -99,10 +110,25 @@ async def get_best_p2p_usdt_sell_course(
     )
 
     adv_list = await _get_p2p_adv_list(req_model)
-    return adv_list[0]
+    best_adv_data = adv_list[0]
+
+    operation = P2PExchangeOperation(
+            fiat=fiat,
+            crypto='USDT',
+            course=best_adv_data.adv.price,
+            operation_type='SELL',
+            fiat_amount=amount,
+            advertiser_url=_get_advertiser_url(best_adv_data)
+            )
+    return operation
 
 
-async def _get_p2p_adv_list(request_data: AdvSearchRequestModel) -> list[AdvData]:
+def _get_advertiser_url(adv_info: AdvData):
+    advertiser_no = adv_info.advertiser.user_no
+    return f'https://p2p.binance.com/en/advertiserDetail?advertiserNo={advertiser_no}'
+
+
+async def _get_p2p_adv_list(request_data: AdvSearchRequestSchema) -> list[AdvData]:
     # getting response
     response: httpx.Response = await _get_binance_adv_search_response(request_data)
 
@@ -116,7 +142,7 @@ async def _get_p2p_adv_list(request_data: AdvSearchRequestModel) -> list[AdvData
         return adv_data_list
 
 
-async def _get_binance_adv_search_response(request_data: AdvSearchRequestModel) -> httpx.Response:
+async def _get_binance_adv_search_response(request_data: AdvSearchRequestSchema) -> httpx.Response:
     # TODO: catch possible errors
     async with httpx.AsyncClient(base_url=API_URL) as client:
         request_object = request_data.model_dump(by_alias=True)
@@ -133,7 +159,7 @@ class ApiEmptyResponseError(Exception):
 
 
 def _parse_adv_data(api_response: httpx.Response) -> list[AdvData]:
-    response_object = AdvSearchResponseModel(**api_response.json())
+    response_object = AdvSearchResponseSchema(**api_response.json())
     if response_object.code != 0:
         raise ApiResponseError
 
