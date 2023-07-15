@@ -1,7 +1,7 @@
 import httpx
 from pydantic import BaseModel, Field
 
-from models.binance import P2PExchangeOperation
+from models.binance_models import P2PExchangeOperation
 from enums.binance_enums import TradeType, P2PCryptoAssetType
 
 

@@ -1,6 +1,6 @@
 from asyncio import create_task
 
-from models.binance import FiatConvertOperation
+from models.binance_models import FiatConvertOperation
 from .binance_adv_search_service import (
         get_best_p2p_usdt_buy_course,
         get_best_p2p_usdt_sell_course
