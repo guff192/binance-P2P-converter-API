@@ -1,11 +1,13 @@
 from pydantic import BaseModel
 
+from enums.binance_enums import P2PCryptoAssetType, TradeType
+
 
 class P2PExchangeOperation(BaseModel):
     fiat: str
-    crypto: str
+    crypto: P2PCryptoAssetType
     course: float
-    operation_type: str
+    operation_type: TradeType
     fiat_amount: float
     advertiser_url: str
 

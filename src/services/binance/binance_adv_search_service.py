@@ -1,27 +1,14 @@
-from enum import Enum
 import httpx
 from pydantic import BaseModel, Field
 
 from models.binance import P2PExchangeOperation
+from enums.binance_enums import TradeType, P2PCryptoAssetType
 
 
 API_URL = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'
 
 
 # API Request models
-class TradeType(str, Enum):
-    BUY = 'BUY'
-    SELL = 'SELL'
-
-
-class P2PCryptoAssetType(str, Enum):
-    USDT = 'USDT'
-    BTC = 'BTC'
-    BUSD = 'BUSD'
-    BNB = 'BNB'
-    ETH = 'ETH'
-
-
 class AdvSearchRequestSchema(BaseModel):
     fiat: str
     page: int = 1
@@ -85,9 +72,9 @@ async def get_best_p2p_usdt_buy_course(
 
     operation = P2PExchangeOperation(
             fiat=fiat,
-            crypto='USDT',
+            crypto=P2PCryptoAssetType.USDT,
             course=best_adv_data.adv.price,
-            operation_type='BUY',
+            operation_type=TradeType.BUY,
             fiat_amount=amount,
             advertiser_url=_get_advertiser_url(best_adv_data)
             )
@@ -114,9 +101,9 @@ async def get_best_p2p_usdt_sell_course(
 
     operation = P2PExchangeOperation(
             fiat=fiat,
-            crypto='USDT',
+            crypto=P2PCryptoAssetType.USDT,
             course=best_adv_data.adv.price,
-            operation_type='SELL',
+            operation_type=TradeType.SELL,
             fiat_amount=amount,
             advertiser_url=_get_advertiser_url(best_adv_data)
             )
