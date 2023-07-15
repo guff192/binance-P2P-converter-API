@@ -64,40 +64,42 @@ class ApiAdvSearchResponse(BaseModel):
     success: bool
 
 
-async def get_top_10_p2p_usdt_buy_courses(
+async def get_best_p2p_usdt_buy_course(
         fiat: str,
         pay_types: list[str] = [],
         amount: float = 0,
-        ) -> list[AdvData]: 
+        ) -> AdvData: 
     req_model = AdvRequestDataModel(
         fiat=fiat,
         page=1,
-        rows=10,
+        rows=1,
         trade_type=TradeType.BUY,
         asset=P2PCryptoAssetType.USDT,
         pay_types=pay_types,
         trans_amount=amount
     )
 
-    return await _get_p2p_adv_list(req_model)
+    adv_list = await _get_p2p_adv_list(req_model)
+    return adv_list[0]
 
 
-async def get_top_10_p2p_usdt_sell_courses(
+async def get_best_p2p_usdt_sell_course(
         fiat: str,
         pay_types: list[str] = [],
         amount: float = 0,
-        ) -> list[AdvData]: 
+        ) -> AdvData: 
     req_model = AdvRequestDataModel(
         fiat=fiat,
         page=1,
-        rows=10,
+        rows=1,
         trade_type=TradeType.SELL,
         asset=P2PCryptoAssetType.USDT,
         pay_types=pay_types,
         trans_amount=amount
     )
 
-    return await _get_p2p_adv_list(req_model)
+    adv_list = await _get_p2p_adv_list(req_model)
+    return adv_list[0]
 
 
 async def _get_p2p_adv_list(request_data: AdvRequestDataModel) -> list[AdvData]:
