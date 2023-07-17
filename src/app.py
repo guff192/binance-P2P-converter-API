@@ -1,27 +1,23 @@
 # coding: utf-8
-import asyncio
+from fastapi import FastAPI
+import uvicorn
 
-from services.binance import get_best_fiat_change_operation
+from routes import root_api_router
 
 
-async def main():
-    operation = await get_best_fiat_change_operation(
-            'RUB',
-            'AMD',
-            src_payment_type="TinkoffNew",
-            dst_payment_type="Ardshinbank",
-            src_amount=3000,
+app = FastAPI()
+app.include_router(root_api_router)
+
+
+def run():
+    uvicorn.run(
+        app=__name__+':app',
+        host='127.0.0.1',
+        port=8000,
+        reload=True
     )
-    
-    for key, value in operation.model_dump().items():
-        if not isinstance(value, dict):
-            print(f'{key}: {value}')
-        else:
-            print(key+': {')
-            for k, v in value.items():
-                print(f'    {k}: {v}')
-            print('}')
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+    run()
 

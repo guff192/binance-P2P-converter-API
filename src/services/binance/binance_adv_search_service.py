@@ -1,8 +1,9 @@
+from fastapi import HTTPException
 import httpx
 from pydantic import BaseModel, Field
 
 from models.binance_models import P2PExchangeOperation
-from enums.binance_enums import TradeType, P2PCryptoAssetType
+from enums.binance_enums import P2PFiatCurrencyType, TradeType, P2PCryptoAssetType
 
 
 API_URL = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'
@@ -10,7 +11,7 @@ API_URL = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'
 
 # API Request models
 class AdvSearchRequestSchema(BaseModel):
-    fiat: str
+    fiat: P2PFiatCurrencyType
     page: int = 1
     rows: int = 20
     trade_type: TradeType = Field(serialization_alias='tradeType')
@@ -48,12 +49,12 @@ class AdvSearchResponseSchema(BaseModel):
     message: str | None = None
     messageDetail: str | None = None
     data: list[AdvData] | None
-    total: int
+    total: int = 0
     success: bool
 
 
 async def get_best_p2p_usdt_buy_course(
-        fiat: str,
+        fiat: P2PFiatCurrencyType,
         pay_types: list[str] = [],
         amount: float = 0,
         ) -> P2PExchangeOperation: 
@@ -82,7 +83,7 @@ async def get_best_p2p_usdt_buy_course(
 
 
 async def get_best_p2p_usdt_sell_course(
-        fiat: str,
+        fiat: P2PFiatCurrencyType,
         pay_types: list[str] = [],
         amount: float = 0,
         ) -> P2PExchangeOperation: 
@@ -97,7 +98,13 @@ async def get_best_p2p_usdt_sell_course(
     )
 
     adv_list = await _get_p2p_adv_list(req_model)
-    best_adv_data = adv_list[0]
+    try:
+        best_adv_data = adv_list[0]
+    except IndexError:
+        raise HTTPException(
+            status_code=404,
+            detail={'message': 'no courses, try to change your search conditions'}
+        )
 
     operation = P2PExchangeOperation(
             fiat=fiat,

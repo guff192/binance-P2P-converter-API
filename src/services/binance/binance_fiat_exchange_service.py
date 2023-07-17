@@ -1,4 +1,5 @@
 from asyncio import create_task
+from enums.binance_enums import P2PFiatCurrencyType
 
 from models.binance_models import FiatConvertOperation
 from .binance_adv_search_service import (
@@ -12,10 +13,10 @@ class BothAmountsError(Exception):
 
 
 async def get_best_fiat_change_operation(
-        fiat_src: str,
-        fiat_dst: str,
-        src_payment_type: str,
-        dst_payment_type: str,
+        fiat_src: P2PFiatCurrencyType,
+        fiat_dst: P2PFiatCurrencyType,
+        src_payment_types: list[str],
+        dst_payment_types: list[str],
         src_amount: float = 0,
         dst_amount: float = 0,
         ) -> FiatConvertOperation:
@@ -25,12 +26,12 @@ async def get_best_fiat_change_operation(
     fiat_src_task = create_task(get_best_p2p_usdt_buy_course(
         fiat=fiat_src,
         amount=src_amount,
-        pay_types=[src_payment_type]
+        pay_types=src_payment_types
     ))
     fiat_dst_task = create_task(get_best_p2p_usdt_sell_course(
         fiat=fiat_dst,
         amount=dst_amount,
-        pay_types=[dst_payment_type]
+        pay_types=dst_payment_types
     ))
 
     best_src_p2p_operation = await fiat_src_task
@@ -41,14 +42,14 @@ async def get_best_fiat_change_operation(
         best_dst_p2p_operation = await get_best_p2p_usdt_sell_course(
                 fiat=fiat_dst,
                 amount=dst_amount,
-                pay_types=[dst_payment_type]
+                pay_types=dst_payment_types
                 )
     elif dst_amount != 0:
         src_amount = dst_amount / best_dst_p2p_operation.course * best_src_p2p_operation.course
         best_src_p2p_operation = await get_best_p2p_usdt_buy_course(
                 fiat=fiat_dst,
                 amount=dst_amount,
-                pay_types=[src_payment_type]
+                pay_types=src_payment_types
                 )
         
     course = best_dst_p2p_operation.course / best_src_p2p_operation.course
@@ -64,10 +65,10 @@ async def get_best_fiat_change_operation(
 
 async def main():
     operation = await get_best_fiat_change_operation(
-            'RUB',
-            'AMD',
-            src_payment_type="TinkoffNew",
-            dst_payment_type="Ardshinbank",
+            P2PFiatCurrencyType.RUB,
+            P2PFiatCurrencyType.AMD,
+            src_payment_types=["TinkoffNew"],
+            dst_payment_types=["Ardshinbank", "ArCA"],
             src_amount=3000,
             )
 
