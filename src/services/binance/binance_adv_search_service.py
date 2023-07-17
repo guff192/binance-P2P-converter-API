@@ -47,7 +47,7 @@ class AdvData(BaseModel):
 class AdvSearchResponseSchema(BaseModel):
     code: int
     message: str | None = None
-    messageDetail: str | None = None
+    messageDetail: dict | None = None
     data: list[AdvData] | None
     total: int = 0
     success: bool
@@ -69,7 +69,14 @@ async def get_best_p2p_usdt_buy_course(
     )
 
     adv_list = await _get_p2p_adv_list(req_model)
-    best_adv_data = adv_list[0]
+
+    try:
+        best_adv_data = adv_list[0]
+    except IndexError:
+        raise HTTPException(
+            status_code=404,
+            detail={'message': f'no courses for {fiat}, try to change your search conditions'}
+        )
 
     operation = P2PExchangeOperation(
             fiat=fiat,
@@ -103,7 +110,7 @@ async def get_best_p2p_usdt_sell_course(
     except IndexError:
         raise HTTPException(
             status_code=404,
-            detail={'message': 'no courses, try to change your search conditions'}
+            detail={'message': f'no courses for {str(fiat.value)}, try to change your search conditions'}
         )
 
     operation = P2PExchangeOperation(
@@ -130,7 +137,6 @@ async def _get_p2p_adv_list(request_data: AdvSearchRequestSchema) -> list[AdvDat
     try:
         adv_data_list = _parse_adv_data(response)
     except ApiEmptyResponseError as e:
-        print('API returned empty response:', e)
         return []
     else:
         return adv_data_list
@@ -138,24 +144,36 @@ async def _get_p2p_adv_list(request_data: AdvSearchRequestSchema) -> list[AdvDat
 
 async def _get_binance_adv_search_response(request_data: AdvSearchRequestSchema) -> httpx.Response:
     # TODO: catch possible errors
-    async with httpx.AsyncClient(base_url=API_URL) as client:
-        request_object = request_data.model_dump(by_alias=True)
-        response: httpx.Response = await client.post('/', json=request_object)
-        return response
+    try:
+        async with httpx.AsyncClient(base_url=API_URL) as client:
+            request_object = request_data.model_dump(by_alias=True)
+            response: httpx.Response = await client.post('/', json=request_object)
+    except:
+        raise ApiResponseError('error while getting response from API')
+
+    return response
 
 
-class ApiResponseError(Exception): 
+class ApiResponseError(HTTPException): 
     """Can't get data from search API"""
+    def __init__(self, err_message):
+        self.status_code = 500
+        self.detail = f'Error getting data from Binance API: {err_message}'
+        self.headers = None
 
 
-class ApiEmptyResponseError(Exception):
+
+
+class ApiEmptyResponseError(ApiResponseError):
     "API returned empty data in response"
+    def __init__(self):
+        super().__init__('API returned no data in response')
 
 
 def _parse_adv_data(api_response: httpx.Response) -> list[AdvData]:
     response_object = AdvSearchResponseSchema(**api_response.json())
-    if response_object.code != 0:
-        raise ApiResponseError
+    # if response_object.code != 0:
+    #     raise ApiResponseError()
 
     useful_data = response_object.data
     if useful_data is None:

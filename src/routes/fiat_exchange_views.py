@@ -6,8 +6,8 @@ from models.binance_models import FiatConvertOperation, P2PExchangeOperation
 from services.binance import (
     get_best_p2p_usdt_buy_course,
     get_best_p2p_usdt_sell_course,
+    get_best_fiat_change_operation,
 )
-from services.binance.binance_fiat_exchange_service import get_best_fiat_change_operation
 
 
 fiat_exchange_router = APIRouter(prefix='/fiat-exchange')
