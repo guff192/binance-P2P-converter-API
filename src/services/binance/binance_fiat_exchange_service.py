@@ -53,8 +53,8 @@ async def get_best_fiat_change_operation(
     elif dst_amount != 0:
         src_amount = dst_amount / best_dst_p2p_operation.course * best_src_p2p_operation.course
         best_src_p2p_operation = await get_best_p2p_usdt_buy_course(
-                fiat=fiat_dst,
-                amount=dst_amount,
+                fiat=fiat_src,
+                amount=src_amount,
                 pay_types=src_payment_types
                 )
         
