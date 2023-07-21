@@ -1,21 +1,13 @@
 from asyncio import create_task
 
-from fastapi import HTTPException
 from enums.binance_enums import P2PFiatCurrencyType
 
 from models.binance_models import FiatConvertOperation
+from exceptions.fiat_exchange_exceptions import BothAmountsError
 from .binance_adv_search_service import (
         get_best_p2p_usdt_buy_course,
         get_best_p2p_usdt_sell_course
         )
-
-
-class BothAmountsError(HTTPException):
-    """Both source and destination amounts provided"""
-    def __init__(self):
-        self.status_code = 400
-        self.detail = 'You may set either src_amount or dst_amount, not both of them!'
-        self.headers = None
 
 
 async def get_best_fiat_change_operation(

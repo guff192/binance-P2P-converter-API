@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 from models.binance_models import P2PExchangeOperation
 from enums.binance_enums import P2PFiatCurrencyType, TradeType, P2PCryptoAssetType
-from exceptions.binance_api_errors import BinanceApiResponseError, BinanceApiEmptyResponseError
+from exceptions.binance_api_exceptions import BinanceApiResponseError, BinanceApiEmptyResponseError
 
 
 API_URL = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'
