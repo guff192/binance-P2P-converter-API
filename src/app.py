@@ -9,6 +9,11 @@ app = FastAPI()
 app.include_router(root_api_router)
 
 
+@app.on_event('startup')
+def on_startup():
+    print('starting the app.....')
+
+
 def run():
     uvicorn.run(
         app=__name__+':app',
