@@ -1,9 +1,9 @@
-from fastapi import HTTPException
 import httpx
 from pydantic import BaseModel, Field
 
 from models.binance_models import P2PExchangeOperation
 from enums.binance_enums import P2PFiatCurrencyType, TradeType, P2PCryptoAssetType
+from exceptions.binance_api_errors import BinanceApiResponseError, BinanceApiEmptyResponseError
 
 
 API_URL = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'
@@ -73,10 +73,7 @@ async def get_best_p2p_usdt_buy_course(
     try:
         best_adv_data = adv_list[0]
     except IndexError:
-        raise HTTPException(
-            status_code=404,
-            detail={'message': f'no courses for {fiat}, try to change your search conditions'}
-        )
+        raise BinanceApiEmptyResponseError(fiat=fiat)
 
     operation = P2PExchangeOperation(
             fiat=fiat,
@@ -108,10 +105,7 @@ async def get_best_p2p_usdt_sell_course(
     try:
         best_adv_data = adv_list[0]
     except IndexError:
-        raise HTTPException(
-            status_code=404,
-            detail={'message': f'no courses for {str(fiat.value)}, try to change your search conditions'}
-        )
+        raise BinanceApiEmptyResponseError(fiat=fiat)
 
     operation = P2PExchangeOperation(
             fiat=fiat,
@@ -134,12 +128,9 @@ async def _get_p2p_adv_list(request_data: AdvSearchRequestSchema) -> list[AdvDat
     response: httpx.Response = await _get_binance_adv_search_response(request_data)
 
     # parsing response
-    try:
-        adv_data_list = _parse_adv_data(response)
-    except BinanceApiEmptyResponseError as e:
-        return []
-    else:
-        return adv_data_list
+    adv_data_list = _parse_adv_data(response, request_data.fiat)
+
+    return adv_data_list
 
 
 async def _get_binance_adv_search_response(request_data: AdvSearchRequestSchema) -> httpx.Response:
@@ -149,19 +140,19 @@ async def _get_binance_adv_search_response(request_data: AdvSearchRequestSchema)
             request_object = request_data.model_dump(by_alias=True)
             response: httpx.Response = await client.post('/', json=request_object)
     except:
-        raise BinanceApiResponseError('error while getting response from API')
+        raise BinanceApiResponseError(err_message='error while getting response')
 
     return response
 
 
-def _parse_adv_data(api_response: httpx.Response) -> list[AdvData]:
+def _parse_adv_data(api_response: httpx.Response, fiat: P2PFiatCurrencyType) -> list[AdvData]:
     response_object = AdvSearchResponseSchema(**api_response.json())
     # if response_object.code != 0:
     #     raise ApiResponseError()
 
     useful_data = response_object.data
     if useful_data is None:
-        raise BinanceApiEmptyResponseError
+        raise BinanceApiEmptyResponseError(fiat=fiat)
 
     return useful_data
 
