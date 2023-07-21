@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 from enums.binance_enums import P2PCryptoAssetType, P2PFiatCurrencyType, TradeType
 
@@ -17,5 +17,10 @@ class FiatConvertOperation(BaseModel):
     src_amount: float
     fiat_src_operation: P2PExchangeOperation
     fiat_dst_operation: P2PExchangeOperation
+
+    @computed_field
+    @property
+    def inverted_course(self) -> float:
+        return 1/self.course
 
 
