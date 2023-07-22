@@ -7,6 +7,8 @@ class P2PExchangeOperation(BaseModel):
     fiat: P2PFiatCurrencyType
     crypto: P2PCryptoAssetType
     course: float
+    min_amount: float
+    max_amount: float
     operation_type: TradeType
     fiat_amount: float
     advertiser_url: str

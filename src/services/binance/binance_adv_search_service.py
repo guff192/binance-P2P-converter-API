@@ -79,6 +79,8 @@ async def get_best_p2p_usdt_buy_course(
             fiat=fiat,
             crypto=P2PCryptoAssetType.USDT,
             course=best_adv_data.adv.price,
+            min_amount=best_adv_data.adv.min_single_trans_amount,
+            max_amount=best_adv_data.adv.max_single_trans_amount,
             operation_type=TradeType.BUY,
             fiat_amount=amount,
             advertiser_url=_get_advertiser_url(best_adv_data)
@@ -111,6 +113,8 @@ async def get_best_p2p_usdt_sell_course(
             fiat=fiat,
             crypto=P2PCryptoAssetType.USDT,
             course=best_adv_data.adv.price,
+            min_amount=best_adv_data.adv.min_single_trans_amount,
+            max_amount=best_adv_data.adv.max_single_trans_amount,
             operation_type=TradeType.SELL,
             fiat_amount=amount,
             advertiser_url=_get_advertiser_url(best_adv_data)
