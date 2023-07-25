@@ -20,7 +20,7 @@ async def on_startup():
     )
 
     await bot.set_webhook(
-        url='https://442b-37-252-94-246.ngrok-free.app/api/v1/telegram/webhook',
+        url='https://b7e4-37-252-94-246.ngrok-free.app/api/v1/telegram/webhook',
         drop_pending_updates=True,
     )
     logger.info('starting the app.....')
@@ -28,11 +28,12 @@ async def on_startup():
 
 @app.on_event('shutdown')
 async def on_shutdown():
+    logger.info('shutting down the app...')
+
     await bot.delete_webhook(
         drop_pending_updates=True
     )
-
-    logger.info('shutting down...')
+    await bot.close_session()
 
 
 def run():
