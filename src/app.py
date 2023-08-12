@@ -4,25 +4,18 @@ from fastapi import FastAPI
 import uvicorn
 
 from routes import root_api_router
-from middleware import register_middlewares
-from bot import bot
+from middleware import register_all_middleware
+from bot import bot, configure_bot
 
 
 app = FastAPI()
 app.include_router(root_api_router)
-register_middlewares(app)
+register_all_middleware(app)
 
 
 @app.on_event('startup')
 async def on_startup():
-    await bot.delete_webhook(
-        drop_pending_updates=True
-    )
-
-    await bot.set_webhook(
-        url='https://b7e4-37-252-94-246.ngrok-free.app/api/v1/telegram/webhook',
-        drop_pending_updates=True,
-    )
+    await configure_bot()
     logger.info('starting the app.....')
 
 
