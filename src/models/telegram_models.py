@@ -3,6 +3,8 @@
 from typing import List, Optional, TypeAlias
 from pydantic import BaseModel
 
+from telebot.types import Update as TelebotUpdate
+
 
 class User(BaseModel):
     id: int
@@ -93,6 +95,29 @@ class Update(BaseModel):
     pre_checkout_query: Optional[dict] = None
     poll: Optional[dict] = None
     poll_answer: Optional[dict] = None
+    my_chat_member: Optional[dict] = None
+    chat_member: Optional[dict] = None
+    chat_join_request: Optional[dict] = None
+
+    async def to_telebot_update(self) -> TelebotUpdate: 
+        return TelebotUpdate(
+            update_id=self.update_id,
+            message=self.message,
+            edited_message=self.edited_message,
+            channel_post=self.channel_post,
+            edited_channel_post=self.edited_channel_post,
+            inline_query=self.inline_query,
+            chosen_inline_result=self.chosen_inline_result,
+            callback_query=self.callback_query,
+            shipping_query=self.shipping_query,
+            pre_checkout_query=self.pre_checkout_query,
+            poll=self.poll,
+            poll_answer=self.poll_answer,
+            my_chat_member=self.my_chat_member,
+            chat_member=self.chat_member,
+            chat_join_request=self.chat_join_request
+        )
 
 
 TelegramWebhookRequest: TypeAlias = Update
+
