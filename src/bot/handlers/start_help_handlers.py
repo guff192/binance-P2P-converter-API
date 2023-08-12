@@ -15,5 +15,13 @@ async def handle_start(message: Message, bot: AsyncTeleBot):
     logger.info('received /start or /help command')
     # Отправляем приветственное сообщение и информацию о боте
     await bot.send_message(message.chat.id, 'Привет! Я бот, который поможет тебе узнать актуальные курсы для покупки крипты с помощью Binance P2P, а также связки для обмена фиатной валюты Фиат1 ↔️ Крипта ↔️ Фиат2.')
-    await bot.set_state(message.chat.id, ExchangeStates.exchange_type)
-    await bot.send_message(message.chat.id, 'Могу чем-то помочь?', reply_markup=get_main_menu_keyboard())
+    await bot.set_state(
+        message.from_user.id,
+        ExchangeStates.exchange_type,
+        message.chat.id
+    )
+    await bot.send_message(
+        message.chat.id,
+        'Сначала выбери тип обмена, который тебя интересует:',
+        reply_markup=get_main_menu_keyboard()
+    )
