@@ -18,10 +18,12 @@ async def process_webhook(
     Process webhook calls
     """
     if request:
+        # TODO: use this method
+        # update = await request.to_telebot_update()
         update = Update.de_json(request)
         if isinstance(update, Update):
-            logger.info('received telegram webhook wtih Update')
+            logger.info('received telegram webhook with Update')
             background_tasks.add_task(bot.process_new_updates, [update])
-        return
-    else:
-        return
+
+    return
+
