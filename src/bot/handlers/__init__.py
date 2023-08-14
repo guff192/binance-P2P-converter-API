@@ -1,6 +1,6 @@
 from telebot.async_telebot import AsyncTeleBot
 
-from .main_menu_handlers import register_main_menu_handlers
+from .exchange_handlers import register_main_menu_handlers
 from .start_help_handlers import register_start_help_handlers
 
 
